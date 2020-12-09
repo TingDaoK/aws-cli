@@ -42,6 +42,7 @@ from awscli.customizations.s3.subscribers import (
     DeleteSourceFileSubscriber, DeleteSourceObjectSubscriber,
     DeleteCopySourceObjectSubscriber
 )
+from s3transfer.crt import CRTTransferManager
 from awscli.compat import get_binary_stdin
 
 
@@ -64,7 +65,7 @@ class S3TransferHandlerFactory(object):
         self._cli_params = cli_params
         self._runtime_config = runtime_config
 
-    def __call__(self, client, result_queue):
+    def __call__(self, session, client, result_queue):
         """Creates a S3TransferHandler instance
 
         :type client: botocore.client.Client
@@ -82,7 +83,8 @@ class S3TransferHandlerFactory(object):
         transfer_config.max_in_memory_download_chunks = \
             self.MAX_IN_MEMORY_CHUNKS
 
-        transfer_manager = TransferManager(client, transfer_config)
+        # transfer_manager = TransferManager(client, transfer_config)
+        transfer_manager = CRTTransferManager(session)
 
         LOGGER.debug(
             "Using a multipart threshold of %s and a part size of %s",
@@ -371,8 +373,8 @@ class UploadRequestSubmitter(BaseTransferRequestSubmitter):
     def _submit_transfer_request(self, fileinfo, extra_args, subscribers):
         bucket, key = find_bucket_key(fileinfo.dest)
         filein = self._get_filein(fileinfo)
-        return self._transfer_manager.upload(
-            fileobj=filein, bucket=bucket, key=key,
+        return self._transfer_manager.upload_file(
+            filename=filein, bucket=bucket, key=key,
             extra_args=extra_args, subscribers=subscribers
         )
 
@@ -415,8 +417,8 @@ class DownloadRequestSubmitter(BaseTransferRequestSubmitter):
     def _submit_transfer_request(self, fileinfo, extra_args, subscribers):
         bucket, key = find_bucket_key(fileinfo.src)
         fileout = self._get_fileout(fileinfo)
-        return self._transfer_manager.download(
-            fileobj=fileout, bucket=bucket, key=key,
+        return self._transfer_manager.download_file(
+            filename=fileout, bucket=bucket, key=key,
             extra_args=extra_args, subscribers=subscribers
         )
 

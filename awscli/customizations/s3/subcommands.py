@@ -755,8 +755,8 @@ class CpCommand(S3TransferCommand):
             "or <S3Uri> <S3Uri>"
     ARG_TABLE = [{'name': 'paths', 'nargs': 2, 'positional_arg': True,
                   'synopsis': USAGE}] + TRANSFER_ARGS + \
-                [METADATA, COPY_PROPS, METADATA_DIRECTIVE, EXPECTED_SIZE,
-                 RECURSIVE]
+        [METADATA, COPY_PROPS, METADATA_DIRECTIVE, EXPECTED_SIZE,
+         RECURSIVE]
 
 
 class MvCommand(S3TransferCommand):
@@ -767,7 +767,7 @@ class MvCommand(S3TransferCommand):
             "or <S3Uri> <S3Uri>"
     ARG_TABLE = [{'name': 'paths', 'nargs': 2, 'positional_arg': True,
                   'synopsis': USAGE}] + TRANSFER_ARGS +\
-                [METADATA, COPY_PROPS, METADATA_DIRECTIVE, RECURSIVE]
+        [METADATA, COPY_PROPS, METADATA_DIRECTIVE, RECURSIVE]
 
 
 class RmCommand(S3TransferCommand):
@@ -789,7 +789,7 @@ class SyncCommand(S3TransferCommand):
             "<LocalPath> or <S3Uri> <S3Uri>"
     ARG_TABLE = [{'name': 'paths', 'nargs': 2, 'positional_arg': True,
                   'synopsis': USAGE}] + TRANSFER_ARGS + \
-                [METADATA, COPY_PROPS, METADATA_DIRECTIVE]
+        [METADATA, COPY_PROPS, METADATA_DIRECTIVE]
 
 
 class MbCommand(S3Command):
@@ -887,6 +887,7 @@ class CommandArchitecture(object):
     list of instructions to wire together an assortment of generators to
     perform the command.
     """
+
     def __init__(self, session, cmd, parameters, runtime_config=None):
         self.session = session
         self.cmd = cmd
@@ -1050,7 +1051,7 @@ class CommandArchitecture(object):
 
         s3_transfer_handler = S3TransferHandlerFactory(
             self.parameters, self._runtime_config)(
-                self._client, result_queue)
+                self.session, self._client, result_queue)
 
         sync_strategies = self.choose_sync_strategies()
 
@@ -1156,6 +1157,7 @@ class CommandParameters(object):
     This class is used to do some initial error based on the
     parameters and arguments passed to the command line.
     """
+
     def __init__(self, cmd, parameters, usage):
         """
         Stores command name and parameters.  Ensures that the ``dir_op`` flag
@@ -1219,7 +1221,7 @@ class CommandParameters(object):
         if self.cmd == 'mv' and self._same_path(params['src'], params['dest']):
             raise ParamValidationError(
                 "Cannot mv a file onto itself: '%s' - '%s'" % (
-                params['src'], params['dest']))
+                    params['src'], params['dest']))
 
         # If the user provided local path does not exist, hard fail because
         # we know that we will not be able to upload the file.
