@@ -65,7 +65,7 @@ class S3TransferHandlerFactory(object):
         self._cli_params = cli_params
         self._runtime_config = runtime_config
 
-    def __call__(self, session, client, result_queue):
+    def __call__(self, session, client, result_queue, path_type):
         """Creates a S3TransferHandler instance
 
         :type client: botocore.client.Client
@@ -83,8 +83,11 @@ class S3TransferHandlerFactory(object):
         transfer_config.max_in_memory_download_chunks = \
             self.MAX_IN_MEMORY_CHUNKS
 
-        # transfer_manager = TransferManager(client, transfer_config)
-        transfer_manager = CRTTransferManager(session)
+        if "preferred_transfer_client" in self._runtime_config and self._runtime_config["preferred_transfer_client"] == 'crt' and path_type != "s3s3":
+            # If user prefer the CRT transfer client, we will try to use it as much as possible.
+            transfer_manager = CRTTransferManager(session, transfer_config)
+        else:
+            transfer_manager = TransferManager(client, transfer_config)
 
         LOGGER.debug(
             "Using a multipart threshold of %s and a part size of %s",
@@ -373,8 +376,8 @@ class UploadRequestSubmitter(BaseTransferRequestSubmitter):
     def _submit_transfer_request(self, fileinfo, extra_args, subscribers):
         bucket, key = find_bucket_key(fileinfo.dest)
         filein = self._get_filein(fileinfo)
-        return self._transfer_manager.upload_file(
-            filename=filein, bucket=bucket, key=key,
+        return self._transfer_manager.upload(
+            fileobj=filein, bucket=bucket, key=key,
             extra_args=extra_args, subscribers=subscribers
         )
 
@@ -417,8 +420,8 @@ class DownloadRequestSubmitter(BaseTransferRequestSubmitter):
     def _submit_transfer_request(self, fileinfo, extra_args, subscribers):
         bucket, key = find_bucket_key(fileinfo.src)
         fileout = self._get_fileout(fileinfo)
-        return self._transfer_manager.download_file(
-            filename=fileout, bucket=bucket, key=key,
+        return self._transfer_manager.download(
+            fileobj=fileout, bucket=bucket, key=key,
             extra_args=extra_args, subscribers=subscribers
         )
 

@@ -1051,7 +1051,7 @@ class CommandArchitecture(object):
 
         s3_transfer_handler = S3TransferHandlerFactory(
             self.parameters, self._runtime_config)(
-                self.session, self._client, result_queue)
+                self.session, self._client, result_queue, paths_type)
 
         sync_strategies = self.choose_sync_strategies()
 
