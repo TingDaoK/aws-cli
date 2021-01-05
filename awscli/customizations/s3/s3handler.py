@@ -42,7 +42,7 @@ from awscli.customizations.s3.subscribers import (
     DeleteSourceFileSubscriber, DeleteSourceObjectSubscriber,
     DeleteCopySourceObjectSubscriber
 )
-from s3transfer.crt import CRTTransferManager
+from s3transfer.crt import CRTTransferManager, CRTTransferConfig
 from awscli.compat import get_binary_stdin
 
 
@@ -83,9 +83,14 @@ class S3TransferHandlerFactory(object):
         transfer_config.max_in_memory_download_chunks = \
             self.MAX_IN_MEMORY_CHUNKS
 
-        if "preferred_transfer_client" in self._runtime_config and self._runtime_config["preferred_transfer_client"] == 'crt' and path_type != "s3s3":
-            # If user prefer the CRT transfer client, we will try to use it as much as possible.
-            transfer_manager = CRTTransferManager(session, transfer_config)
+        if "preferred_transfer_client" in self._runtime_config and self._runtime_config[
+                "preferred_transfer_client"] == 'crt' and path_type != "s3s3":
+            # If user prefer the CRT transfer client, we will try to use it as
+            # much as possible.
+            config = CRTTransferConfig(max_bandwidth=transfer_config.max_bandwidth,
+                                       multipart_chunksize=transfer_config.multipart_chunksize,
+                                       max_request_processes=transfer_config.max_request_concurrency)
+            transfer_manager = CRTTransferManager(session, config)
         else:
             transfer_manager = TransferManager(client, transfer_config)
 
@@ -317,7 +322,7 @@ class BaseTransferRequestSubmitter(object):
                     '%s on object.' % (fileinfo.src, fileinfo.operation_name))
                 if not self._cli_params.get('ignore_glacier_warnings'):
                     warning = create_warning(
-                        's3://'+fileinfo.src,
+                        's3://' + fileinfo.src,
                         'Object is of storage class GLACIER. Unable to '
                         'perform %s operations on GLACIER objects. You must '
                         'restore the object to be able to perform the '
