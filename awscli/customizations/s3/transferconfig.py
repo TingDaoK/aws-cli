@@ -25,6 +25,7 @@ DEFAULTS = {
     'max_queue_size': 1000,
     'max_bandwidth': None,
     'preferred_transfer_client': constants.DEFAULT_TRANSFER_CLIENT,
+    'crt_target_bandwidth': None,
 }
 
 
@@ -36,9 +37,9 @@ class RuntimeConfig(object):
 
     POSITIVE_INTEGERS = ['multipart_chunksize', 'multipart_threshold',
                          'max_concurrent_requests', 'max_queue_size',
-                         'max_bandwidth']
+                         'max_bandwidth', 'crt_target_bandwidth']
     HUMAN_READABLE_SIZES = ['multipart_chunksize', 'multipart_threshold']
-    HUMAN_READABLE_RATES = ['max_bandwidth']
+    HUMAN_READABLE_RATES = ['max_bandwidth', 'crt_target_bandwidth']
     SUPPORTED_CHOICES = {
         'preferred_transfer_client': [
             constants.DEFAULT_TRANSFER_CLIENT,

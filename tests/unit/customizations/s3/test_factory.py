@@ -250,3 +250,23 @@ class TestTransferManagerFactory(unittest.TestCase):
         self.assertIsNone(
             mock_crt_client.call_args[1]['credential_provider']
         )
+
+    @mock.patch('s3transfer.crt.S3Client')
+    def test_crt_target_bandwidth_configure_for_crt_manager(
+            self, mock_crt_client):
+        GB = 1024 ** 3
+        self.runtime_config = self.get_runtime_config(
+            preferred_transfer_client='crt',
+            crt_target_bandwidth=1*GB)
+        self.params['sign_request'] = False
+        transfer_manager = self.factory.create_transfer_manager(
+            self.params, self.runtime_config)
+        self.assert_is_crt_manager(transfer_manager)
+        self.session.get_component.assert_not_called()
+        self.assertIsNone(
+            mock_crt_client.call_args[1]['credential_provider']
+        )
+        self.assertEqual(
+            mock_crt_client.call_args[1]['throughput_target_gbps'],
+            8
+        )
